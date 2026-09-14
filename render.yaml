@@ -1,0 +1,18 @@
+services:
+  - type: cron
+    name: tver-real-estate-scout
+    runtime: node
+    region: frankfurt
+    plan: starter
+    schedule: "*/15 * * * *"
+    buildCommand: "npm install"
+    startCommand: "npm run scout"
+    envVars:
+      - key: SCOUT_INGEST_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SCOUT_TIMEOUT_MS
+        value: "15000"
+      - key: SCOUT_MAX_ITEMS_PER_SOURCE
+        value: "20"

@@ -1,0 +1,8 @@
+{
+  "name": "tver-real-estate-scout",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node src/scout.js", "scout": "node src/scout.js" },
+  "dependencies": { "rss-parser": "^3.13.0" }
+}
