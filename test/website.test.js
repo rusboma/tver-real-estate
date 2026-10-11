@@ -41,3 +41,9 @@ test('national Telegram locality is not inferred from words confirmed or Thursda
  assert.equal(housingNews({title:'Капремонт школы в Твери',body:'Строительство'}),false);
  assert.equal(housingNews({title:'Отопление жилых домов и школ в Кимрах'}),true);
 });
+test('image-only news preserves the original image with an explicit text notice',()=>{
+ const item=parseWebsiteArticle('<div class="item-page"><h1>Тарифы водоснабжения</h1><div itemprop="articleBody"><img src="/tariffs.png"></div></div>','https://example.test/news/42',source);
+ assert.equal(item.imageUrl,'https://example.test/tariffs.png');
+ assert.ok(item.fullText.includes('Источник разместил основную информацию в изображении'));
+ assert.ok(!item.fullText.includes('Тариф составляет'));
+});

@@ -38,8 +38,14 @@ export function parseWebsiteArticle(html,url,source) {
  let body=scope.find(selector).add(scope.filter(selector)).first();
  if(!body.length)body=scope;
  const copy=body.clone();copy.find('h1,nav,header,footer,script,style,.article-info,.social,.share,.related,.news-list').remove();
- const fullText=plainText(copy.html()||'').slice(0,100000);if(fullText.length<100)return null;
- return {title,url,sourceName:source.name,sourceUrl:source.url,sourceTier:source.tier,sourceType:source.sourceType,externalId:url,publishedAt:publishedDate($,scope),summary:fullText.slice(0,600),body:fullText,fullText,imageUrl:publicImageUrl($('meta[property="og:image"]').attr('content')||body.find('img').first().attr('src'),url),contentType:'news',confidence:source.tier==='A'?0.95:0.8};
+ let fullText=plainText(copy.html()||'').slice(0,100000);
+ const imageUrl=publicImageUrl(body.find('img').first().attr('src')||$('meta[property="og:image"]').attr('content'),url);
+ if(fullText.length<100){
+  if(!body.find('img').length||!imageUrl)return null;
+  fullText=(fullText?fullText+'\n\n':'')+'Источник разместил основную информацию в изображении. На странице нет развёрнутого текстового описания. Ниже показано изображение из оригинальной публикации; данные нужно проверить по нему.';
+ }
+
+ return {title,url,sourceName:source.name,sourceUrl:source.url,sourceTier:source.tier,sourceType:source.sourceType,externalId:url,publishedAt:publishedDate($,scope),summary:fullText.slice(0,600),body:fullText,fullText,imageUrl,contentType:'news',confidence:source.tier==='A'?0.95:0.8};
 }
 export function websiteLinks(html,url,source) {
  const $=load(html);$('nav,header,footer,.menu').remove();const pattern=source.articlePattern?new RegExp(source.articlePattern):null;const host=new URL(source.url).hostname.replace(/^www\./,'');const result=[];
