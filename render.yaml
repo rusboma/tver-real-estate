@@ -16,3 +16,5 @@ services:
         value: "15000"
       - key: SCOUT_MAX_ITEMS_PER_SOURCE
         value: "20"
+      - key: SCOUT_MAX_AGE_DAYS
+        value: "14"

@@ -3,6 +3,7 @@ export const config = {
   serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   timeoutMs: Number(process.env.SCOUT_TIMEOUT_MS || 15000),
   maxItems: Number(process.env.SCOUT_MAX_ITEMS_PER_SOURCE || 20),
+  maxAgeDays: Number(process.env.SCOUT_MAX_AGE_DAYS || 14),
   userAgent: process.env.SCOUT_USER_AGENT || 'tver-real-estate-scout/0.1',
 };
 

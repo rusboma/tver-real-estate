@@ -1,25 +1,28 @@
 # Недвижимость Твери — Scout
 
-Первый автоматический сборщик проекта «ТВЕРЬ.НЕДВИЖИМОСТЬ».
+Сборщик запускается в Render каждые 15 минут и передаёт новости в защищённую Supabase Edge Function `agent-scout-ingest`.
 
-## Что делает
-1. Запускается по расписанию Render Cron.
-2. Читает разрешённые RSS/Atom-источники.
-3. Нормализует материалы.
-4. Удаляет дубли внутри запуска.
-5. Передаёт материалы в Supabase Edge Function `agent-scout-ingest`.
+## Подключённые источники
 
-## Важно
-Источники в `src/sources.js` пока заведены как каталог. `feedUrl` намеренно не заполнен: для каждого сайта сначала нужно определить официальный RSS/Atom/API или иной разрешённый способ доступа. Не обходим robots.txt и ограничения сайтов.
+- Афанасий Бизнес: `https://www.afanasy.biz/rss/yandex_rss_news.xml`
+- ТВТверь: `https://tvtver.ru/?yandex_feed=news`
+- Тверская городская Дума: `https://www.tverduma.ru/news/rss.php`
+- ГУ МЧС России по Тверской области: `https://69.mchs.gov.ru/deyatelnost/press-centr/vse_novosti/rss`
 
-## Render
-`render.yaml` создаёт Cron Job в Frankfurt с запуском каждые 15 минут.
+Записи без `feedUrl` пропускаются. Ограничения сайтов не обходятся.
 
-Секреты: `SCOUT_INGEST_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
-Service Role Key никогда не коммитим в Git.
+## Обработка
 
-## Следующий этап
-Подключить официальные RSS/API, добавить фильтр по Твери, затем Factchecker → Analyst → Editor → ручное approve → Telegram.
+Материалы за последние 14 дней проходят предварительный тематический фильтр, затем ограничение двадцатью материалами на источник. Новости без даты и старые архивные записи пропускаются. Ошибка одного источника не прерывает остальные; ошибка всех источников завершает запуск с ненулевым кодом.
 
-## v0.2 update
-RSS of Afanasy has been discovered in a public RSS catalog, but direct reachability from Render is not yet verified. Scout now filters real-estate and housing-related news, and the ingest payload matches the deployed Supabase Edge Function (`items` with snake_case keys). Run logs should show `source_filtered` and `run_complete`. A successful run with zero items is not evidence of ingestion. Do not enable Telegram autopublishing yet. If the feed is unavailable, check `source_error` logs before changing URLs.
+Полный текст RSS и фотография сохраняются отдельно от анонса. Дубли по ссылке удаляются внутри запуска и при записи в базу. Повторный сбор не меняет редакторское решение. Последующая оценка в базе распределяет новости по очередям.
+
+## Настройка
+
+Проверка: `npm ci`, затем `npm test`. Запуск: `npm run scout`.
+
+Серверные переменные: `SCOUT_INGEST_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Секреты не коммитятся. `SCOUT_MAX_AGE_DAYS` по умолчанию равен 14. Конфигурация Render находится в `render.yaml`.
+
+SQL атомарного импорта: `sql/scout-ingest.sql`. Edge Function: `supabase/functions/agent-scout-ingest/`. RPC доступен только `service_role`, Edge Function проверяет серверный ключ.
+
+Telegram-публикация отключена. Сбор и одобрение новости не отправляют её в Telegram.
