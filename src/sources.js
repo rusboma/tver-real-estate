@@ -1,5 +1,7 @@
+import {regionalSources} from './regional-sources.js';
 // Only enable a source after confirming its official RSS/Atom/API access method.
 export const sources = [
+  ...regionalSources,
   {name:'Telegram — Прокуратура Тверской области',url:'https://t.me/prokuraturatverskoioblasti',channel:'prokuraturatverskoioblasti',adapter:'telegram',tier:'A',sourceType:'telegram',localChannel:true},
   {name:'Telegram — Тверская Телега',url:'https://t.me/telega_tver',channel:'telega_tver',adapter:'telegram',tier:'B',sourceType:'telegram',localChannel:true},
   {name:'Telegram — Новый Город',url:'https://t.me/ngtver',channel:'ngtver',adapter:'telegram',tier:'B',sourceType:'telegram',localChannel:true,developer:true},

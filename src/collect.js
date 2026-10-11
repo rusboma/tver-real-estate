@@ -1,3 +1,4 @@
+import {collectWebsite} from './website.js';
 import { collectTelegram } from './telegram.js';
 import { collectProsecutor } from './legal-news.js';
 import { fetchText } from './fetch.js';
@@ -18,6 +19,12 @@ export async function collectSources(sources, config, log, {
   let successfulSources = 0;
   let failedSources = 0;
   for (const source of sources) {
+    if (source.disabledReason) { log('source_skipped',{source:source.name,reason:source.disabledReason}); continue; }
+    if (source.adapter === 'website') {
+      try { allMaterials.push(...await collectWebsite(source,config,log)); successfulSources++; }
+      catch(error) { failedSources++; log('source_error',{source:source.name,error:error.message}); }
+      continue;
+    }
     if (source.adapter === 'telegram') {
       try { allMaterials.push(...await collectTelegram(source, config, log)); successfulSources++; }
       catch (error) { failedSources++; log('source_error',{source:source.name,error:error.message}); }

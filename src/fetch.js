@@ -9,5 +9,8 @@ export async function fetchText(url, timeoutMs, userAgent) {
     const text = await response.text();
     if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
     return { text, contentType: response.headers.get('content-type') || '' };
+  } catch (error) {
+    if (error.cause?.code) throw new Error(`${error.message}: ${error.cause.code}`);
+    throw error;
   } finally { clearTimeout(timer); }
 }
