@@ -1,5 +1,6 @@
 // Only enable a source after confirming its official RSS/Atom/API access method.
 export const sources = [
+  { name: 'Прокуратура Тверской области', url: 'https://epp.genproc.gov.ru/ru/proc_69/', adapter: 'prosecutor', listUrls: ['https://epp.genproc.gov.ru/ru/proc_69/mass-media/news/main/', 'https://epp.genproc.gov.ru/ru/proc_69/mass-media/news/regional/'], tier: 'A', sourceType: 'official_news' },
   { name: 'Афанасий', url: 'https://www.afanasy.biz/', feedUrl: 'https://www.afanasy.biz/rss/yandex_rss_news.xml', tier: 'B', sourceType: 'media' },
   { name: 'TVTver', url: 'https://tvtver.ru/', feedUrl: 'https://tvtver.ru/?yandex_feed=news', tier: 'B', sourceType: 'local_media' },
   { name: 'Тверская городская Дума', url: 'https://www.tverduma.ru/', feedUrl: 'https://www.tverduma.ru/news/rss.php', tier: 'A', sourceType: 'municipal' },

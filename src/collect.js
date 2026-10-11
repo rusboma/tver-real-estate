@@ -1,3 +1,4 @@
+import { collectProsecutor } from './legal-news.js';
 import { fetchText } from './fetch.js';
 import { parseFeed } from './parse.js';
 import { relevant } from './filter.js';
@@ -16,6 +17,16 @@ export async function collectSources(sources, config, log, {
   let successfulSources = 0;
   let failedSources = 0;
   for (const source of sources) {
+    if (source.adapter === 'prosecutor') {
+      try {
+        allMaterials.push(...await collectProsecutor(source, config, log));
+        successfulSources++;
+      } catch (error) {
+        failedSources++;
+        log('source_error', {source:source.name,error:error.message});
+      }
+      continue;
+    }
     if (!source.feedUrl) {
       log('source_skipped', { source: source.name, reason: 'feedUrl_not_configured' });
       continue;
