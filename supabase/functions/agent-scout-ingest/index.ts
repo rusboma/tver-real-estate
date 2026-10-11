@@ -27,8 +27,10 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({ p_item: item }),
       });
       if (!response.ok) {
-        console.error('scout_ingest_item failed:', response.status);
-        return new Response(JSON.stringify({ ok: false, error: 'ingest_failed', processed: results.length }), { status: 400, headers });
+        const failure = await response.json().catch(() => ({}));
+        console.error('scout_ingest_item failed:', response.status, failure.code, failure.message);
+        const errorCode = typeof failure.code === 'string' ? failure.code : 'unknown';
+        return new Response(JSON.stringify({ ok: false, error: 'ingest_failed', code: errorCode, message: String(failure.message || '').slice(0, 200), processed: results.length }), { status: 400, headers });
       }
       results.push(await response.json());
     }

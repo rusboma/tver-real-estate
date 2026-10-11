@@ -7,3 +7,9 @@ export function housingNews(item) {
  const institutions=/колледж|школ|больниц|поликлиник|стадион|спортзал|беремен|роддом|выставк|концерт/i;
  return housing.test(`${title} ${item.body||''}`)&&(!institutions.test(title)||strong.test(title));
 }
+
+export function developerNews(text) {
+ const advert=/скидк|клиентский день|запис.{0,15}просмотр|успей|акци[яи]|купить|отдел.{0,10}продаж|рассрочк|подбор.{0,15}квартир/i;
+ const fact=/ввод.{0,25}эксплуатац|разрешени.{0,25}ввод|переда.{0,25}(ключ|собственник|управляющ)|ход.{0,15}строительств|бетонирован|армирован|монтаж|строительн.{0,15}готовност/i;
+ return !advert.test(text)||fact.test(text);
+}

@@ -2,7 +2,7 @@ import {load} from 'cheerio';
 import {fetchText} from './fetch.js';
 import {parseFeed} from './parse.js';
 import {plainText,publicImageUrl} from './text.js';
-import {housing,housingNews} from './region.js';
+import {housing,housingNews,developerNews} from './region.js';
 import {fresh} from './collect.js';
 
 export function robotsPolicy(text,userAgent='tver-real-estate-scout') {
@@ -43,7 +43,7 @@ export function parseWebsiteArticle(html,url,source) {
 }
 export function websiteLinks(html,url,source) {
  const $=load(html);$('nav,header,footer,.menu').remove();const pattern=source.articlePattern?new RegExp(source.articlePattern):null;const host=new URL(source.url).hostname.replace(/^www\./,'');const result=[];
- $('a[href]').each((_,a)=>{const title=$(a).text().replace(/\s+/g,' ').trim();if(title.length<12||!housing.test(title))return;try{const u=new URL($(a).attr('href'),url);u.hash='';if(u.protocol!=='https:'||u.hostname.replace(/^www\./,'')!==host||(pattern&&!pattern.test(u.pathname))||u.href===url||/\/(category|tag|author|page|objects)\//.test(u.pathname))return;result.push({url:u.href,title});}catch{}});
+ $('a[href]').each((_,a)=>{const title=$(a).text().replace(/\s+/g,' ').trim();if(title.length<12||!housing.test(title))return;try{const u=new URL($(a).attr('href'),url);u.hash='';if(u.protocol==='http:'&&u.hostname.replace(/^www\./,'')===host)u.protocol='https:';if(u.protocol!=='https:'||u.hostname.replace(/^www\./,'')!==host||(pattern&&!pattern.test(u.pathname))||u.href===url||/\/(category|tag|author|page|objects)\//.test(u.pathname))return;result.push({url:u.href,title});}catch{}});
  return [...new Map(result.map(x=>[x.url,x])).values()];
 }
 export async function collectWebsite(source,config,log) {
@@ -54,7 +54,7 @@ export async function collectWebsite(source,config,log) {
  let items=[];
  if(source.feedUrl){const xml=await read(source.feedUrl);items=await parseFeed(xml,source);}
  else {const url=source.listUrl||source.url;const html=await read(url);const links=websiteLinks(html,url,source).slice(0,Math.min(config.maxItems,source.maxPages||8));for(const link of links){try{const item=parseWebsiteArticle(await read(link.url),link.url,source);if(item)items.push(item);}catch(e){log('website_article_error',{source:source.name,url:link.url,error:e.message});}}}
- const recent=items.filter(item=>fresh(item,Date.now(),config.maxAgeDays)&&housingNews(item));
+ const recent=items.filter(item=>fresh(item,Date.now(),config.maxAgeDays)&&housingNews(item)&&(!source.developer||developerNews(`${item.title} ${item.body||''}`)));
  const selected=recent.slice(0,config.maxItems);for(const item of selected){if(!item.fullText){try{const full=parseWebsiteArticle(await read(item.url),item.url,source);if(full){item.fullText=full.fullText;item.body=full.fullText;item.imageUrl=full.imageUrl;}}catch(e){log('website_article_error',{source:source.name,url:item.url,error:e.message});}}}
  log('website_filtered',{source:source.name,fetched:items.length,collected:selected.length,fullText:selected.filter(i=>i.fullText).length});return selected;
 }
