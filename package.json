@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node src/scout.js",
     "scout": "node src/scout.js",
-    "test": "node --test",
-    "postinstall": "node src/probe-telegram.js"
+    "test": "node --test"
   },
   "dependencies": {
     "rss-parser": "3.13.0",
