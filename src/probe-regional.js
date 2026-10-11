@@ -1,2 +1,0 @@
-import {regionalSources} from './regional-sources.js';import {collectWebsite} from './website.js';import {config} from './config.js';import {ingest} from './ingest.js';
-if(process.env.RENDER==='true'){const log=(event,data)=>console.log(JSON.stringify({event,...data}));const s=regionalSources.find(x=>x.name==='Тверь Водоканал');const items=await collectWebsite(s,config,log);log('image_news_verified',{count:items.length,items:items.map(x=>({url:x.url,textLength:x.fullText?.length,imageUrl:x.imageUrl}))});if(items.length)log('image_news_ingested',await ingest(items));}

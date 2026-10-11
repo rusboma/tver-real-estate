@@ -1,5 +1,5 @@
 import {regionalSources} from './regional-sources.js';
-// Only enable a source after confirming its official RSS/Atom/API access method.
+// Active sources have a verified public feed, Telegram page or dated news page.
 export const sources = [
   ...regionalSources,
   {name:'Telegram — Прокуратура Тверской области',url:'https://t.me/prokuraturatverskoioblasti',channel:'prokuraturatverskoioblasti',adapter:'telegram',tier:'A',sourceType:'telegram',localChannel:true},
