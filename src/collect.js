@@ -1,3 +1,4 @@
+import { collectTelegram } from './telegram.js';
 import { collectProsecutor } from './legal-news.js';
 import { fetchText } from './fetch.js';
 import { parseFeed } from './parse.js';
@@ -17,6 +18,11 @@ export async function collectSources(sources, config, log, {
   let successfulSources = 0;
   let failedSources = 0;
   for (const source of sources) {
+    if (source.adapter === 'telegram') {
+      try { allMaterials.push(...await collectTelegram(source, config, log)); successfulSources++; }
+      catch (error) { failedSources++; log('source_error',{source:source.name,error:error.message}); }
+      continue;
+    }
     if (source.adapter === 'prosecutor') {
       try {
         allMaterials.push(...await collectProsecutor(source, config, log));

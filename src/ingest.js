@@ -1,6 +1,6 @@
 import { config } from './config.js';
 
-export async function ingest(materials) {
+async function ingestBatch(materials) {
   const response = await fetch(config.ingestUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + config.serviceRoleKey },
@@ -15,4 +15,13 @@ export async function ingest(materials) {
   const body = await response.text();
   if (!response.ok) throw new Error('Ingest failed: HTTP ' + response.status + ': ' + body.slice(0, 500));
   try { return JSON.parse(body); } catch { return { raw: body }; }
+}
+
+export async function ingest(materials) {
+  const results=[];
+  for(let i=0;i<materials.length;i+=100) {
+    const result=await ingestBatch(materials.slice(i,i+100));
+    results.push(...(result.results||[]));
+  }
+  return {ok:true,results};
 }

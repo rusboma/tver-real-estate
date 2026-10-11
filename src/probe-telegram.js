@@ -1,14 +1,12 @@
-import { load } from 'cheerio';
-if (process.env.RENDER === 'true') {
-  for (const channel of ['prokuraturatverskoioblasti','telega_tver','ngtver','gkhnewsru']) {
-    try {
-      const response = await fetch('https://t.me/s/' + channel, {signal:AbortSignal.timeout(12000)});
-      const html = await response.text();
-      const $ = load(html);
-      const posts = $('.tgme_widget_message');
-      console.log(JSON.stringify({event:'telegram_access_probe',channel,httpStatus:response.status,pageTitle:$('title').text().slice(0,100),posts:posts.length,textPosts:posts.filter((_,el)=>$(el).find('.tgme_widget_message_text').text().trim().length>0).length,latestDate:posts.last().find('time').attr('datetime')||null}));
-    } catch (cause) {
-      console.log(JSON.stringify({event:'telegram_access_probe',channel,error:cause instanceof Error ? cause.message : 'fetch_failed'}));
-    }
-  }
+import{collectTelegram}from'./telegram.js';
+import{sources}from'./sources.js';
+import{config}from'./config.js';
+import{ingest}from'./ingest.js';
+if(process.env.RENDER==='true'){
+ const items=[];
+ for(const source of sources.filter(s=>s.adapter==='telegram')){
+  try{items.push(...await collectTelegram(source,config,(event,data)=>console.log(JSON.stringify({event,...data}))));}
+  catch(e){console.log(JSON.stringify({event:'telegram_seed_error',source:source.name,error:e.message}));}
+ }
+ if(items.length){const result=await ingest(items);console.log(JSON.stringify({event:'telegram_seed_complete',collected:items.length,inserted:result.results.filter(x=>x.status==='inserted').length,duplicates:result.results.filter(x=>x.status==='duplicate').length}));}
 }
