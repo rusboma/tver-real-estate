@@ -33,3 +33,11 @@ test('regional filter includes municipalities outside Tver city',()=>{
  for(const city of ['Осташков','Лихославль','Калязин','Торопец','Нелидово','Старица','Зубцов','Удомля','Кашин'])assert.equal(relevant({title:city+' — ремонт многоквартирного дома'}),true);
  assert.equal(relevant({title:'Москва — ремонт многоквартирного дома'}),false);
 });
+test('national Telegram locality is not inferred from words confirmed or Thursday',async()=>{
+ const {region,housingNews}=await import('../src/region.js');
+ assert.equal(region.test('Суд подтвердил решение в Калининграде'),false);
+ assert.equal(region.test('Собрание состоится в четверг'),false);
+ assert.equal(region.test('В Тверской области приняли решение'),true);
+ assert.equal(housingNews({title:'Капремонт школы в Твери',body:'Строительство'}),false);
+ assert.equal(housingNews({title:'Отопление жилых домов и школ в Кимрах'}),true);
+});

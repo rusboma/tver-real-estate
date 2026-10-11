@@ -12,10 +12,10 @@ begin
  select * into source_record from public.sources where url=p_item->>'source_url' and is_active;
  if not found then raise exception 'Unknown source'; end if;
  -- Accept the same HTTPS host with or without www, retaining source path boundaries.
- if not (
-   regexp_replace(p_item->>'url','^https://www\.','https://') like
+ if not starts_with(
+   regexp_replace(p_item->>'url','^https://www\.','https://'),
    regexp_replace(source_record.url,'^https://www\.','https://') ||
-   case when right(source_record.url,1)='/' then '%' else '/%' end
+   case when right(source_record.url,1)='/' then '' else '/' end
  ) then raise exception 'Article URL does not match source'; end if;
  perform pg_advisory_xact_lock(hashtextextended(p_item->>'url',0));
  select * into article_record from public.articles where url=p_item->>'url' limit 1;
