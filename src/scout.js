@@ -3,6 +3,7 @@ import { sources } from './sources.js';
 import { fetchText } from './fetch.js';
 import { parseFeed } from './parse.js';
 import { ingest } from './ingest.js';
+import { relevant } from './filter.js';
 
 function log(event, data = {}) { console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...data })); }
 
@@ -16,7 +17,9 @@ async function run() {
     }
     try {
       const result = await fetchText(source.feedUrl, config.timeoutMs, config.userAgent);
-      const items = (await parseFeed(result.text, source)).slice(0, config.maxItems);
+      const parsed = (await parseFeed(result.text, source)).slice(0, config.maxItems);
+      const items = parsed.filter(relevant);
+      log('source_filtered', { source: source.name, fetched: parsed.length, relevant: items.length });
       allMaterials.push(...items);
       log('source_collected', { source: source.name, count: items.length });
     } catch (error) {
