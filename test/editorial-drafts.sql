@@ -8,7 +8,7 @@ begin
  quoted:='QA draft fixture '||actor||' Управляющая организация организует ремонт общего имущества.';
  insert into articles(source_id,title,url,body,published_at) values(sid,'QA draft article '||actor,'https://draft-test.invalid/'||actor||'/a',repeat(quoted||' ',8),'2050-01-01') returning id into aid;
  ctx:=editorial_draft_context(aid);
- content:=jsonb_build_object('title','QA Draft title','lead','QA Source describes an operational practice.','body',repeat(quoted,2),'tver_note','Местным УК можно рассмотреть такой подход.','verification_notes','Сверить первичный источник.','content_kind','practice','facts',jsonb_build_array(jsonb_build_object('claim','Организация ремонта','quote',quoted)));
+ content:=jsonb_build_object('title','QA Draft title','lead','QA Source describes an operational practice.','body',repeat(quoted,2),'verification_notes','Сверить первичный источник.','content_kind','practice','facts',jsonb_build_array(jsonb_build_object('claim','Организация ремонта','quote',quoted)));
  result:=editorial_draft_write(aid,'generate',content,0,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com');
  if result->'draft'->>'status'<>'draft' or (result->'draft'->>'revision')::int<>1 then raise exception 'Generation persistence failed'; end if;
  blocked:=false; begin perform editorial_draft_write(aid,'save',content,0,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com'); exception when others then if sqlerrm like 'Conflict%' then blocked:=true; else raise; end if; end;

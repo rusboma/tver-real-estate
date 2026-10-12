@@ -30,7 +30,7 @@ returns jsonb language sql security invoker set search_path=public,pg_temp as $$
   'has_full_text',c.full_text is not null,
   'source_text',coalesce(c.full_text,nullif(a.body,''),a.summary,''),
   'source_fingerprint',md5(a.title||a.url||coalesce(a.event_date::text,'')||coalesce(c.full_text,nullif(a.body,''),a.summary,'')),
-  'draft',to_jsonb(d))
+  'draft',to_jsonb(d)-'tver_note')
  from articles a left join sources s on s.id=a.source_id
  left join article_content_snapshots c on c.article_id=a.id
  left join editorial_drafts d on d.article_id=a.id where a.id=p_article_id;
@@ -64,11 +64,11 @@ begin
    revision=revision+1,updated_at=clock_timestamp(),modified_by=p_actor_id where article_id=a.id returning * into d;
  else
   if jsonb_typeof(p_content) is distinct from 'object' then raise exception 'Invalid draft'; end if;
-  foreach key in array array['title','lead','body','tver_note','verification_notes','content_kind'] loop
+  foreach key in array array['title','lead','body','verification_notes','content_kind'] loop
    if jsonb_typeof(p_content->key) is distinct from 'string' then raise exception 'Invalid draft field'; end if;
   end loop;
   if length(btrim(p_content->>'title')) not between 5 and 240 or length(btrim(p_content->>'lead')) not between 20 and 1200
-   or length(btrim(p_content->>'body')) not between 80 and 12000 or length(p_content->>'tver_note') not between 10 and 1800
+   or length(btrim(p_content->>'body')) not between 80 and 12000
    or length(p_content->>'verification_notes')>3000 or p_content->>'content_kind' not in ('news','practice','event_announcement') then raise exception 'Invalid draft lengths'; end if;
   if jsonb_typeof(p_content->'facts') is distinct from 'array' or jsonb_array_length(p_content->'facts')>5 then raise exception 'Invalid facts'; end if;
   if p_action='generate' and jsonb_array_length(p_content->'facts')=0 then raise exception 'Invalid empty evidence'; end if;
@@ -79,7 +79,7 @@ begin
   end loop;
   if d.status='approved' then perform editorial_console_decide(a.id,'request_review',p_actor_id,p_actor_email,a.updated_at,'Черновик изменён; требуется повторная проверка'); end if;
   insert into editorial_drafts(article_id,title,lead,body,tver_note,verification_notes,content_kind,facts,source_fingerprint,revision,modified_by,generated_at)
-  values(a.id,btrim(p_content->>'title'),btrim(p_content->>'lead'),btrim(p_content->>'body'),btrim(p_content->>'tver_note'),
+  values(a.id,btrim(p_content->>'title'),btrim(p_content->>'lead'),btrim(p_content->>'body'),'',
    btrim(p_content->>'verification_notes'),p_content->>'content_kind',p_content->'facts',p_source_fingerprint,1,p_actor_id,
    case when p_action='generate' then clock_timestamp() end)
   on conflict(article_id) do update set title=excluded.title,lead=excluded.lead,body=excluded.body,tver_note=excluded.tver_note,
@@ -90,7 +90,7 @@ begin
  end if;
  insert into editorial_draft_versions(article_id,revision,content,action,actor_id) values(a.id,d.revision,to_jsonb(d),p_action,p_actor_id);
  insert into editorial_actions(article_id,action,actor_id,note) values(a.id,'draft_'||case p_action when 'generate' then 'generate' when 'save' then 'save' else 'approve' end,
-  p_actor_id,p_actor_email||' · Черновик, версия '||d.revision||case when p_action='approve' then ' · Факты и применимость проверены редактором' else '' end);
+  p_actor_id,p_actor_email||' · Черновик, версия '||d.revision||case when p_action='approve' then ' · Факты и источник проверены редактором' else '' end);
  return editorial_draft_context(a.id)-'source_text';
 end $$;
 revoke all on function public.editorial_draft_context(uuid) from public,anon,authenticated;
