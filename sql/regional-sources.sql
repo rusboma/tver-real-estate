@@ -6,7 +6,7 @@ insert into public.sources(name,url,tier,source_type,is_active) values
 ('Тверь Водоканал','https://www.tvervodokanal.ru/','A','utility',true),
 ('ОЭС Тверской области','https://www.oes-tver.ru/','A','utility',false),
 ('УК Звезда Тверь','https://uk-zvezda.ru/','B','management_company',false),
-('ТСЖ 1-й переулок Красной Слободы, 3','https://tsjtver.kvado.ru/','B','homeowners_association',true),
+('ТСЖ 1-й переулок Красной Слободы, 3','https://tsjtver.kvado.ru/','B','homeowners_association',false),
 ('Администрация Твери — ЖКХ','https://www.tver.ru/','A','municipal',false),
 ('Тверские ведомости','https://vedtver.ru/','B','local_media',true),
 ('Кимрский вестник','https://kimvestnik.ru/','B','local_media',true),

@@ -8,7 +8,7 @@ export const regionalSources=[
  web('Тверь Водоканал','https://www.tvervodokanal.ru/',{feedUrl:'https://www.tvervodokanal.ru/index.php?format=feed&type=rss',tier:'A',sourceType:'utility'}),
  web('ОЭС Тверской области','https://www.oes-tver.ru/',{disabledReason:'robots.txt запрещает автоматический сбор для сторонних роботов',listUrl:'https://www.oes-tver.ru/news',articlePattern:'/news/',tier:'A',sourceType:'utility'}),
  web('УК Звезда Тверь','https://uk-zvezda.ru/',{disabledReason:'Страница новостей не содержит доступных датированных публикаций',sourceType:'management_company'}),
- web('ТСЖ 1-й переулок Красной Слободы, 3','https://tsjtver.kvado.ru/',{articlePattern:'/news/[0-9]+',rootSelector:'#content',contentSelector:'#content',sourceType:'homeowners_association'}),
+ web('ТСЖ 1-й переулок Красной Слободы, 3','https://tsjtver.kvado.ru/',{disabledReason:'Исключён из опроса по решению редактора 12.10.2026',articlePattern:'/news/[0-9]+',rootSelector:'#content',contentSelector:'#content',sourceType:'homeowners_association'}),
  web('Администрация Твери — ЖКХ','https://www.tver.ru/',{disabledReason:'Сайт отклоняет соединение со сборщиком на Render (ECONNREFUSED)',listUrl:'https://www.tver.ru/about/info/news/',articlePattern:'/about/info/news/',tier:'A',sourceType:'municipal'}),
  web('Тверские ведомости','https://vedtver.ru/'),
  web('Кимрский вестник','https://kimvestnik.ru/',{feedUrl:'https://kimvestnik.ru/feed'}),
