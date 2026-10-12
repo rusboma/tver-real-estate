@@ -17,8 +17,12 @@ begin
    regexp_replace(source_record.url,'^https://www\.','https://') ||
    case when right(source_record.url,1)='/' then '' else '/' end
  ) then raise exception 'Article URL does not match source'; end if;
+ perform pg_advisory_xact_lock(690012026);
  perform pg_advisory_xact_lock(hashtextextended(p_item->>'url',0));
- select * into article_record from public.articles where url=p_item->>'url' limit 1;
+ select * into article_record from public.articles
+ where duplicate_url_key=public.news_url_key(p_item->>'url')
+ or (source_id=source_record.id and external_id=p_item->>'external_id' and nullif(p_item->>'external_id','') is not null)
+ order by discovered_at,id limit 1;
  if found then
    is_duplicate := true;
    if article_record.source_id is null then
@@ -33,7 +37,7 @@ begin
  end if;
  if full_text_value is not null and length(full_text_value) between 100 and 100000 then
    insert into public.article_content_snapshots(article_id,source_url,full_text,excerpt,image_url,image_caption)
-   values(article_record.id,p_item->>'url',full_text_value,p_item->>'summary',
+   values(article_record.id,article_record.url,full_text_value,p_item->>'summary',
      case when coalesce(p_item->>'image_url','') ~ '^https://' then p_item->>'image_url' else null end,null)
    on conflict(article_id) do nothing;
  end if;
