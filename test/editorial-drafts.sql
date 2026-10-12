@@ -1,0 +1,51 @@
+begin;
+do $tests$
+declare sid uuid; aid uuid; bid uuid; actor uuid:=gen_random_uuid(); ctx jsonb; content jsonb; result jsonb; blocked boolean; quoted text;
+begin
+ if has_table_privilege('anon','public.editorial_drafts','SELECT') or has_table_privilege('authenticated','public.editorial_drafts','UPDATE') then raise exception 'Public draft table exposed'; end if;
+ if has_function_privilege('anon','public.editorial_draft_context(uuid)','EXECUTE') or has_function_privilege('authenticated','public.editorial_draft_write(uuid,text,jsonb,integer,text,timestamp with time zone,uuid,text,boolean)','EXECUTE') then raise exception 'Public draft RPC exposed'; end if;
+ insert into sources(name,url,tier,source_type,editorial_stream) values('QA draft source','https://draft-test.invalid/'||actor,'B','national_media','national') returning id into sid;
+ quoted:='QA draft fixture '||actor||' Управляющая организация организует ремонт общего имущества.';
+ insert into articles(source_id,title,url,body,published_at) values(sid,'QA draft article '||actor,'https://draft-test.invalid/'||actor||'/a',repeat(quoted||' ',8),'2050-01-01') returning id into aid;
+ ctx:=editorial_draft_context(aid);
+ content:=jsonb_build_object('title','QA Draft title','lead','QA Source describes an operational practice.','body',repeat(quoted,2),'tver_note','Местным УК можно рассмотреть такой подход.','verification_notes','Сверить первичный источник.','content_kind','practice','facts',jsonb_build_array(jsonb_build_object('claim','Организация ремонта','quote',quoted)));
+ result:=editorial_draft_write(aid,'generate',content,0,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com');
+ if result->'draft'->>'status'<>'draft' or (result->'draft'->>'revision')::int<>1 then raise exception 'Generation persistence failed'; end if;
+ blocked:=false; begin perform editorial_draft_write(aid,'save',content,0,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com'); exception when others then if sqlerrm like 'Conflict%' then blocked:=true; else raise; end if; end;
+ if not blocked then raise exception 'Stale revision overwrite allowed'; end if;
+ blocked:=false; begin perform editorial_draft_write(aid,'approve',null,1,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com',false); exception when others then if sqlerrm like 'FACT_CHECK_REQUIRED%' then blocked:=true; else raise; end if; end;
+ if not blocked then raise exception 'Unchecked approval allowed'; end if;
+ result:=editorial_draft_write(aid,'save',content||'{"title":"QA Edited draft"}',1,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com');
+ result:=editorial_draft_write(aid,'approve',null,2,ctx->>'source_fingerprint',(result->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com',true);
+ if result->'draft'->>'status'<>'approved' or result->'article'->>'status'<>'approved' then raise exception 'Checked approval failed'; end if;
+ result:=editorial_draft_write(aid,'save',content,3,ctx->>'source_fingerprint',(result->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com');
+ if result->'draft'->>'status'<>'draft' or result->'article'->>'status'<>'review' then raise exception 'Editing approval did not require a new check'; end if;
+ if (select count(*) from editorial_draft_versions where article_id=aid)<>4 then raise exception 'Version history incomplete'; end if;
+ if exists(select 1 from publications where article_id=aid) then raise exception 'Unexpected publication created'; end if;
+ insert into articles(source_id,title,url,body,published_at) values(sid,'QA copy '||actor,'https://draft-test.invalid/'||actor||'/b',repeat(quoted||' ',8),'2050-01-01') returning id into bid;
+ if not exists(select 1 from article_duplicate_links where article_id=least(aid,bid) and other_id=greatest(aid,bid)) then raise exception 'Fixture duplicates not linked'; end if;
+ perform editorial_console_resolve_duplicate(aid,'primary',actor,'rusboma@gmail.com',(select updated_at from articles where id=aid),'QA choose original primary material for regression');
+ ctx:=editorial_draft_context(bid);
+ perform editorial_draft_write(bid,'generate',content,0,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com');
+ blocked:=false; begin perform editorial_draft_write(bid,'approve',null,1,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com',true); exception when others then if sqlerrm like 'DUPLICATE_%' then blocked:=true; else raise; end if; end;
+ if not blocked then raise exception 'Duplicate draft approval allowed'; end if;
+ ctx:=editorial_draft_context(aid);
+ update articles set body=body||' Source amended with an additional observation.' where id=aid;
+ blocked:=false; begin perform editorial_draft_write(aid,'save',content,4,ctx->>'source_fingerprint',(ctx->'article'->>'updated_at')::timestamptz,actor,'rusboma@gmail.com'); exception when others then if sqlerrm like 'Conflict%' then blocked:=true; else raise; end if; end;
+ if not blocked then raise exception 'Changed source accepted without refresh'; end if;
+end $tests$;
+set local role anon;
+do $$ declare denied boolean:=false; begin
+ begin perform count(*) from public.editorial_drafts; exception when insufficient_privilege then denied:=true; end;
+ if not denied then raise exception 'Anonymous read allowed'; end if;
+ denied:=false;begin perform public.editorial_draft_context('00000000-0000-0000-0000-000000000000');exception when insufficient_privilege then denied:=true;end;
+ if not denied then raise exception 'Anonymous RPC allowed'; end if;
+end $$;
+reset role;
+set local role authenticated;
+do $$ declare denied boolean:=false; begin
+ begin insert into public.editorial_drafts(article_id,title) values('00000000-0000-0000-0000-000000000000','forbidden');exception when insufficient_privilege then denied:=true;end;
+ if not denied then raise exception 'Direct authenticated write allowed'; end if;
+end $$;
+reset role;
+rollback;
