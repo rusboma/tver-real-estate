@@ -4,6 +4,7 @@ import {parseFeed} from './parse.js';
 import {plainText,publicImageUrl} from './text.js';
 import {housing,housingNews,developerNews} from './region.js';
 import {fresh} from './collect.js';
+import {parseNuxtPublicArticle} from './nuxt-public.js';
 import {parseTildaFeed} from './tilda.js';
 import {nationalRelevant,nationalLink} from './national-filter.js';
 
@@ -32,15 +33,28 @@ export function publishedDate($,root) {
  if(!m)return null;const year=+m[3],month=+m[2],day=+m[1];const d=new Date(Date.UTC(year,month-1,day));if(d.getUTCMonth()!==month-1||d.getUTCDate()!==day)return null;return `${m[3]}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T12:00:00+03:00`;
 }
 export function parseWebsiteArticle(html,url,source) {
+ if(source.nuxtPublic)return parseNuxtPublicArticle(html,url,source);
  const $=load(html);
  let scope=$(source.rootSelector||'.item-page,.news-detail,article,#content,main').first();
  if(!scope.length)scope=$('.article,.news-content,.news-text,.content').filter((_,el)=>$(el).find('h1,h2').length).first();
- const title=$(source.titleSelector||'h1').first().text().trim()||scope.find('.page-header h2,h2').first().text().trim()||$('meta[property="og:title"]').attr('content')||'';if(!title||!scope.length)return null;
+ const title=source.expectedTitle||$(source.titleSelector||'h1').first().text().trim()||scope.find('.page-header h2,h2').first().text().trim()||$('meta[property="og:title"]').attr('content')||'';if(!title||!scope.length)return null;
  const selector=source.contentSelector||'[itemprop="articleBody"],.entry-content,.news-detail,.article-body,.news-text,.news-content,.post-content';
  let body=scope.find(selector).add(scope.filter(selector)).first();
  if(!body.length)body=scope;
  const copy=body.clone();copy.find('h1,nav,header,footer,script,style,.article-info,.social,.share,.related,.news-list').remove();
  let fullText=plainText(copy.html()||'').slice(0,100000);
+ if(source.tildaArticleBlocks){
+  const records=body.find('[data-record-type]').toArray();
+  const start=records.findIndex(el=>plainText($(el).html()).includes(title));const parts=[];
+  for(const el of records.slice(start>=0?start:0)){
+   const row=$(el);if(row.find('.t-feed').length||row.hasClass('uc-footer'))break;
+   if(/uc-menu|uc-stand/.test(row.attr('class')||''))continue;
+   const block=row.clone();block.find('script,style,form,nav,.t-btn,.t-btnflex,.t-popup,.t-menusub').remove();
+   const text=plainText(block.html());if(text.length>=100&&!/Заполните форму, чтобы бесплатно|Попробовать бесплатно|LET'S GO!/i.test(text))parts.push(text);
+  }
+  if(parts.length)fullText=parts.join('\n\n').slice(0,100000);
+ }
+
  const imageUrl=publicImageUrl(body.find('img').first().attr('src')||$('meta[property="og:image"]').attr('content'),url);
  if(fullText.length<100){
   if(!body.find('img').length||!imageUrl)return null;
@@ -62,11 +76,12 @@ export async function collectWebsite(source,config,log,{fetchPage=fetchText,now=
  let items=[];
  if(source.tildaFeeds){for(const uid of source.tildaFeeds){const data=JSON.parse(await read('https://feeds.tildacdn.com/api/getfeed/?feeduid='+uid+'&size=20'));items.push(...parseTildaFeed(data,source));}}
  else if(source.feedUrl){const xml=await read(source.feedUrl);items=await parseFeed(xml,source);}
- else {const url=source.listUrl||source.url;const html=await read(url);const links=websiteLinks(html,url,source).slice(0,Math.min(config.maxItems,source.maxPages||8));for(const link of links){try{const item=parseWebsiteArticle(await read(link.url),link.url,source);if(item)items.push(item);}catch(e){log('website_article_error',{source:source.name,url:link.url,error:e.message});}}}
+ else {const url=source.listUrl||source.url;const html=await read(url);const links=websiteLinks(html,url,source).slice(0,Math.min(config.maxItems,source.maxPages||8));for(const link of links){try{const item=parseWebsiteArticle(await read(link.url),link.url,source);if(item){if(source.national&&(/^[+0-9()\s-]+$/.test(item.title)||/^(Статьи|Новости|Вебинары|О компании)$/.test(item.title)))item.title=link.title.slice(0,240);items.push(item)};}catch(e){log('website_article_error',{source:source.name,url:link.url,error:e.message});}}}
  const recent=items.filter(item=>(fresh(item,now,config.maxAgeDays)||(source.calendar&&freshEvent(item.eventDate,now)))&&(source.national?nationalRelevant(item,source):housingNews(item))&&(!source.developer||developerNews(`${item.title} ${item.body||''}`)));
- const selected=recent.slice(0,Math.min(config.maxItems,source.maxItems||config.maxItems));for(const item of selected){if(!item.fullText){try{
+ const uniqueRecent=[...new Map(recent.map(item=>[item.url,item])).values()];
+ const selected=uniqueRecent.slice(0,Math.min(config.maxItems,source.maxItems||config.maxItems));for(const item of selected){if(!item.fullText){try{
    if(item.postUid){const data=JSON.parse(await read('https://feeds.tildacdn.com/api/getpost/?postuid='+encodeURIComponent(item.postUid)));const post=data.post||data;if(post.uid&&String(post.uid)!==item.postUid)throw new Error('Tilda post ID mismatch');const fullText=plainText(post.text||'');if(fullText.length>=100){item.fullText=fullText.slice(0,100000);item.body=item.fullText;item.imageUrl=publicImageUrl(post.image||post.thumb,item.url)||item.imageUrl;continue;}}
-   const full=parseWebsiteArticle(await read(item.url),item.url,source);if(full){item.fullText=full.fullText;item.body=full.fullText;item.imageUrl=full.imageUrl;}}catch(e){log('website_article_error',{source:source.name,url:item.url,error:e.message});}}}
+   const full=parseWebsiteArticle(await read(item.url),item.url,{...source,expectedTitle:item.title});if(full){item.fullText=full.fullText;item.body=full.fullText;item.imageUrl=full.imageUrl;}}catch(e){log('website_article_error',{source:source.name,url:item.url,error:e.message});}}}
  log('website_filtered',{source:source.name,fetched:items.length,collected:selected.length,fullText:selected.filter(i=>i.fullText).length});return selected;
 }
 

@@ -1,6 +1,8 @@
+import {nationalSources} from './national-sources.js';
 import {regionalSources} from './regional-sources.js';
 // Active sources have a verified public feed, Telegram page or dated news page.
 export const sources = [
+  ...nationalSources,
   ...regionalSources,
   {name:'Telegram — Прокуратура Тверской области',url:'https://t.me/prokuraturatverskoioblasti',channel:'prokuraturatverskoioblasti',adapter:'telegram',tier:'A',sourceType:'telegram',localChannel:true},
   {name:'Telegram — Тверская Телега',url:'https://t.me/telega_tver',channel:'telega_tver',adapter:'telegram',tier:'B',sourceType:'telegram',localChannel:true},

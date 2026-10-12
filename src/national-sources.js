@@ -1,13 +1,13 @@
 export const NATIONAL_STREAM_NAME = 'Новости ЖКХ. Интересное для Твери';
 const web = (name,url,options={}) => ({name,url,adapter:'website',tier:'B',sourceType:'national_media',editorialStream:'national',national:true,maxPages:5,maxItems:8,...options});
 export const nationalSources = [
- web('РосКвартал','https://roskvartal.ru/',{listUrl:'https://roskvartal.ru/news',linkSelector:'.article-wrapper-link',articlePattern:'/news/[^/]+/[^/]+',rootSelector:'body',dateSelector:'.publication-header',contentSelector:'.publication-content,.publication-content-body,.article-body'}),
+ web('РосКвартал','https://roskvartal.ru/',{listUrl:'https://roskvartal.ru/news',nuxtPublic:true,linkSelector:'.article-wrapper-link',articlePattern:'/news/[^/]+/[^/]+',rootSelector:'body',dateSelector:'.publication-header',contentSelector:'.publication-content,.publication-content-body,.article-body'}),
  web('Бурмистр.ру','https://burmistr.ru/',{articlePattern:'/(stati|blog)/[^/]+/[^/]+/',maxPages:4,rootSelector:'.post-container',contentSelector:'.post-container',titleSelector:'.instead-main-h',dateSelector:'.post-date'}),
- web('АКАТО','https://acato.ru/',{listUrl:'https://acato.ru/events/all/list',articlePattern:'/events/[^/]+/[0-9]{8}/',calendar:true,rootSelector:'.content',sourceType:'national_training'}),
+ web('АКАТО','https://acato.ru/',{listUrl:'https://acato.ru/',articlePattern:'/events/[^/]+/[0-9]{8}/',calendar:true,rootSelector:'.content',sourceType:'national_training'}),
  web('НАСОУН','https://nasoun.ru/',{disabledReason:'Новостной блок сайта явно помечен как демоданные; нет проверяемых оригиналов',sourceType:'national_association'}),
  web('Ассоциация Новое качество','https://www.neo-q.ru/',{articlePattern:'/analitika/[^/]+/',rootSelector:'.site-main',contentSelector:'.article__body',sourceType:'national_association'}),
  web('Квартплата 24','https://www.kvp24.ru/',{disabledReason:'Не найдена доступная датированная новостная лента; сайт содержит описание сервисов',sourceType:'national_vendor'}),
- web('Doma.ai — Блог Домов','https://doma.ai/',{tildaFeeds:['513901946511','769205556081'],rootSelector:'.t-records',contentSelector:'.t-redactor__text',listUrl:'https://doma.ai/blog',sourceType:'national_vendor'}),
+ web('Doma.ai — Блог Домов','https://doma.ai/',{tildaFeeds:['513901946511','769205556081'],tildaArticleBlocks:true,rootSelector:'.t-records',contentSelector:'.t-redactor__text',listUrl:'https://doma.ai/blog',sourceType:'national_vendor'}),
  web('Домиленд','https://domyland.ru/',{tildaFeeds:['446316870081'],listUrl:'https://domyland.ru/news-and-events',sourceType:'national_vendor'}),
  web('ЕРЗ.РФ — практики управления','https://erzrf.ru/',{listUrl:'https://erzrf.ru/news',disabledReason:'Сайт не отвечает на соединения со сборщиком Render (тайм-аут)'}),
  web('CleanNow','https://www.cleannow.ru/',{disabledReason:'Сайт возвращает пустой ответ или ошибку соединения со сборщиком'}),
@@ -18,9 +18,9 @@ export const nationalSources = [
  web('СОК — инженерные системы','https://www.c-o-k.ru/',{listUrl:'https://www.c-o-k.ru/market_news',feedUrl:'https://www.c-o-k.ru/rss/index.php',articlePattern:'/market_news/(?!rubric-)[^/]+',rootSelector:'.eightcol',contentSelector:'[itemprop=articleBody],.news_text,.article-content'}),
  web('АВОК — вебинары','https://webinar.abok.ru/',{calendar:true,articlePattern:'/webinar/[0-9]{2}_[0-9]{2}_[0-9]{4}/',rootSelector:'.d_content:has(h2.inner_h2)',titleSelector:'h2.inner_h2',sourceType:'national_training'}),
  web('BEWARD — домофония','https://www.beward.ru/',{listUrl:'https://www.beward.ru/news/',articlePattern:'/news/[^/]+/',rootSelector:'.article,.content,#content',sourceType:'national_vendor'}),
- web('DoorHan — доступ и шлагбаумы','https://doorhan.ru/',{listUrl:'https://doorhan.ru/news/2026/',feedUrl:'https://doorhan.ru/news//rss/',articlePattern:'/news/[0-9]{4}/[^/]+/',rootSelector:'.news-detail',contentSelector:'.content',titleSelector:'title',sourceType:'national_vendor'}),
+ web('DoorHan — доступ и шлагбаумы','https://doorhan.ru/',{listUrl:'https://doorhan.ru/news/2026/',articlePattern:'/news/[0-9]{4}/[^/]+/',rootSelector:'.news-detail',contentSelector:'.content',titleSelector:'title',sourceType:'national_vendor'}),
  web('UtiliCon','https://utilicon.ru/',{tildaFeeds:['752232646221'],listUrl:'https://utilicon.ru/news',sourceType:'national_events'}),
- web('CleanExpo Moscow','https://www.cleanexpo-moscow.ru/',{listUrl:'https://www.cleanexpo-moscow.ru/ru-RU/press/news.aspx?type=ns',articlePattern:'/ru-RU/press/news/[0-9]+\\.aspx',rootSelector:'body',contentSelector:'.article_page',titleSelector:'.participant_title h2',dateSelector:'.article_header',sourceType:'national_events'}),
+ web('CleanExpo Moscow','https://www.cleanexpo-moscow.ru/',{listUrl:'https://www.cleanexpo-moscow.ru/ru-RU/press/news.aspx?type=ns',articlePattern:'/ru-RU/press/news/[0-9]+\\.aspx',rootSelector:'body',contentSelector:'.article_page',titleSelector:'.article_header h2,.participant_title',dateSelector:'.article_header',sourceType:'national_events'}),
  web('Securika Moscow','https://securika-moscow.ru/',{disabledReason:'Сайт не отвечает со сборщика Render; альтернативный www-адрес возвращает 404',sourceType:'national_events'}),
- web('Heat&Power','https://www.heatpower-expo.ru/',{listUrl:'https://www.heatpower-expo.ru/ru-RU/press/news.aspx?type=ns',articlePattern:'/ru-RU/press/news/[0-9]+\\.aspx',rootSelector:'body',contentSelector:'.article_page',titleSelector:'.participant_title h2',dateSelector:'.article_header',sourceType:'national_events'})
+ web('Heat&Power','https://www.heatpower-expo.ru/',{listUrl:'https://www.heatpower-expo.ru/ru-RU/press/news.aspx?type=ns',articlePattern:'/ru-RU/press/news/[0-9]+\\.aspx',rootSelector:'body',contentSelector:'.article_page',titleSelector:'.article_header h2,.participant_title',dateSelector:'.article_header',sourceType:'national_events'})
 ];
