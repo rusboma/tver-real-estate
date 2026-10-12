@@ -20,6 +20,7 @@ export async function collectSources(sources, config, log, {
   let failedSources = 0;
   for (const source of sources) {
     if (source.disabledReason) { log('source_skipped',{source:source.name,reason:source.disabledReason}); continue; }
+    if (source.national) continue;
     if (source.adapter === 'website') {
       try { allMaterials.push(...await collectWebsite(source,config,log)); successfulSources++; }
       catch(error) { failedSources++; log('source_error',{source:source.name,error:error.message}); }
@@ -64,6 +65,12 @@ export async function collectSources(sources, config, log, {
       });
     }
   }
+  const nationalQueue=sources.filter(source=>source.national&&!source.disabledReason);
+  const worker=async()=>{while(nationalQueue.length){const source=nationalQueue.shift();
+    try{allMaterials.push(...await collectWebsite(source,config,log));successfulSources++;}
+    catch(error){failedSources++;log('source_error',{source:source.name,error:error.message});}
+  }};
+  await Promise.all(Array.from({length:3},()=>worker()));
   const unique = [...new Map(allMaterials.map(item => [item.url || item.externalId, item])).values()];
   return { items: unique, collected: allMaterials.length, successfulSources, failedSources };
 }

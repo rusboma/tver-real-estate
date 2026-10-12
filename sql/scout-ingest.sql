@@ -29,9 +29,9 @@ begin
      update public.articles set source_id=source_record.id where id=article_record.id;
    end if;
  else
-   insert into public.articles(source_id,external_id,title,url,published_at,content_type,status,summary,body,confidence)
+   insert into public.articles(source_id,external_id,title,url,published_at,event_date,content_type,status,summary,body,confidence)
    values(source_record.id,p_item->>'external_id',p_item->>'title',p_item->>'url',
-     nullif(p_item->>'published_at','')::timestamptz,'news','new',
+     nullif(p_item->>'published_at','')::timestamptz,nullif(p_item->>'event_date','')::date,'news','new',
      p_item->>'summary',p_item->>'body',nullif(p_item->>'confidence','')::numeric)
    returning * into article_record;
  end if;

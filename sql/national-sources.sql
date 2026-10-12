@@ -1,0 +1,25 @@
+insert into public.sources(name,url,tier,source_type,is_active,editorial_stream) values
+('РосКвартал','https://roskvartal.ru/','B','national_media',true,'national'),
+('Бурмистр.ру','https://burmistr.ru/','B','national_media',true,'national'),
+('АКАТО','https://acato.ru/','B','national_training',true,'national'),
+('НАСОУН','https://nasoun.ru/','B','national_association',false,'national'),
+('Ассоциация Новое качество','https://www.neo-q.ru/','B','national_association',true,'national'),
+('Квартплата 24','https://www.kvp24.ru/','B','national_vendor',false,'national'),
+('Doma.ai — Блог Домов','https://doma.ai/','B','national_vendor',true,'national'),
+('Домиленд','https://domyland.ru/','B','national_vendor',true,'national'),
+('ЕРЗ.РФ — практики управления','https://erzrf.ru/','B','national_media',false,'national'),
+('CleanNow','https://www.cleannow.ru/','B','national_media',false,'national'),
+('АРУК','https://arukrus.ru/','B','national_association',true,'national'),
+('Национальный лифтовый союз','https://www.lift.ru/','B','national_association',true,'national'),
+('Болид — новости и обучение','https://bolid.ru/','B','national_vendor',true,'national'),
+('RUБЕЖ — технологии ЖКХ','https://ru-bezh.ru/','B','national_media',true,'national'),
+('СОК — инженерные системы','https://www.c-o-k.ru/','B','national_media',true,'national'),
+('АВОК — вебинары','https://webinar.abok.ru/','B','national_training',true,'national'),
+('BEWARD — домофония','https://www.beward.ru/','B','national_vendor',true,'national'),
+('DoorHan — доступ и шлагбаумы','https://doorhan.ru/','B','national_vendor',true,'national'),
+('UtiliCon','https://utilicon.ru/','B','national_events',true,'national'),
+('CleanExpo Moscow','https://www.cleanexpo-moscow.ru/','B','national_events',true,'national'),
+('Securika Moscow','https://securika-moscow.ru/','B','national_events',false,'national'),
+('Heat&Power','https://www.heatpower-expo.ru/','B','national_events',true,'national')
+on conflict(url) do update set name=excluded.name,tier=excluded.tier,source_type=excluded.source_type,is_active=excluded.is_active,editorial_stream=excluded.editorial_stream;
+

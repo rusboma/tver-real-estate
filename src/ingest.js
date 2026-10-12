@@ -8,7 +8,7 @@ async function ingestBatch(materials) {
       title: m.title, url: m.url, source_url: m.sourceUrl,
       source_name: m.sourceName, source_tier: m.sourceTier, source_type: m.sourceType,
       external_id: m.externalId, published_at: m.publishedAt,
-      summary: m.summary, body: m.body, full_text: m.fullText,
+      summary: m.summary, body: m.body, full_text: m.fullText, event_date: m.eventDate,
       image_url: m.imageUrl, content_type: m.contentType, confidence: m.confidence,
     })) }),
   });
