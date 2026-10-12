@@ -37,7 +37,7 @@ export function parseWebsiteArticle(html,url,source) {
  const $=load(html);
  let scope=$(source.rootSelector||'.item-page,.news-detail,article,#content,main').first();
  if(!scope.length)scope=$('.article,.news-content,.news-text,.content').filter((_,el)=>$(el).find('h1,h2').length).first();
- const title=source.expectedTitle||$(source.titleSelector||'h1').first().text().trim()||scope.find('.page-header h2,h2').first().text().trim()||$('meta[property="og:title"]').attr('content')||'';if(!title||!scope.length)return null;
+ let title=source.expectedTitle||$(source.titleSelector||'h1').first().text().trim()||scope.find('.page-header h2,h2').first().text().trim()||$('meta[property="og:title"]').attr('content')||'';title=title.replace(/^←\s*К списку новостей\s*/,'').replace(/\s+\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+20\d{2}\s*$/,'').replace(/\s+/g,' ').trim();if(!title||!scope.length)return null;
  const selector=source.contentSelector||'[itemprop="articleBody"],.entry-content,.news-detail,.article-body,.news-text,.news-content,.post-content';
  let body=scope.find(selector).add(scope.filter(selector)).first();
  if(!body.length)body=scope;

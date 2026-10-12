@@ -3,14 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "start": "node src/scout.js",
-    "scout": "node src/scout.js",
-    "test": "node --test",
-    "postinstall": "node src/probe-national.js"
-  },
-  "dependencies": {
-    "rss-parser": "3.13.0",
-    "cheerio": "1.0.0"
-  }
+  "scripts": { "start": "node src/scout.js", "scout": "node src/scout.js", "test": "node --test" },
+  "dependencies": { "rss-parser": "3.13.0", "cheerio": "1.0.0" }
 }
