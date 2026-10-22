@@ -1,0 +1,18 @@
+{
+  "app_id": "app-lgpix1",
+  "base_snapshot_version": "1792693717834",
+  "status": "pending_deployment_credit_reset",
+  "credits_reset_at": "2026-10-23T00:00:00Z",
+  "database_migration": "manual_telegram_delivery (applied)",
+  "files": [
+    "backend/index.ts",
+    "backend/telegram-routes.ts",
+    "backend/telegram-publish.ts",
+    "src/PublicationQueue.tsx",
+    "src/TelegramPublisher.tsx"
+  ],
+  "required_secret_names": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHANNEL_ID", "TELEGRAM_TEST_CHANNEL_ID"],
+  "scheduled_sending": false,
+  "real_telegram_messages_sent": 0,
+  "before_deploy": "Read current AppDeploy instructions and latest remote source; merge changes if base snapshot changed; run build and QA. Configure secrets through the secure entry workflow."
+}
