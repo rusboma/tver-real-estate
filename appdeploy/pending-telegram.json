@@ -1,18 +1,24 @@
 {
   "app_id": "app-lgpix1",
   "base_snapshot_version": "1792693717834",
-  "status": "pending_deployment_credit_reset",
-  "credits_reset_at": "2026-10-23T00:00:00Z",
+  "status": "deployed_awaiting_telegram_configuration",
   "database_migration": "manual_telegram_delivery (applied)",
   "files": [
     "backend/index.ts",
     "backend/telegram-routes.ts",
     "backend/telegram-publish.ts",
     "src/PublicationQueue.tsx",
-    "src/TelegramPublisher.tsx"
+    "src/TelegramPublisher.tsx",
+    "tests/tests.json"
   ],
-  "required_secret_names": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHANNEL_ID", "TELEGRAM_TEST_CHANNEL_ID"],
+  "required_secret_names": [
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHANNEL_ID",
+    "TELEGRAM_TEST_CHANNEL_ID"
+  ],
   "scheduled_sending": false,
   "real_telegram_messages_sent": 0,
-  "before_deploy": "Read current AppDeploy instructions and latest remote source; merge changes if base snapshot changed; run build and QA. Configure secrets through the secure entry workflow."
+  "before_deploy": "For future changes read current AppDeploy instructions and latest remote source. Telegram credentials are still missing; use the secure entry workflow. No real external delivery has been verified.",
+  "deployed_snapshot_version": "1793193021625",
+  "deployed_at_date": "2026-10-28"
 }
